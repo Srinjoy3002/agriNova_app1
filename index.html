@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AgriNova Dashboard</title>
+
+  <!-- FontAwesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Firebase SDK v8 Compat -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+
+  <style>
+      /* Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #5B2DFA, #7C5CFF, #9A78FF);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 25px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Top bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .top-bar h4 {
+      font-size: 24px;
+      opacity: 0.9;
+    }
+
+    .profile {
+      background: white;
+      color: #5B2DFA;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+
+    .profile:hover {
+      transform: rotate(15deg) scale(1.1);
+    }
+
+    /* Greeting */
+    h2 {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+
+    .wave {
+      display: inline-block;
+      transform-origin: 70% 70%;
+      animation: wave 1.5s infinite;
+    }
+
+    @keyframes wave {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      10% {
+        transform: rotate(14deg);
+      }
+
+      20% {
+        transform: rotate(-8deg);
+      }
+
+      30% {
+        transform: rotate(14deg);
+      }
+
+      40% {
+        transform: rotate(-4deg);
+      }
+
+      50% {
+        transform: rotate(10deg);
+      }
+
+      60% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(0deg);
+      }
+    }
+
+    /* Layout */
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+
+/* Task Card */
+    .task-card {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 14px 20px;
+      margin: 10px auto;
+      max-width: 600px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+      backdrop-filter: blur(8px);
+    }
+
+    .task-card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .task-card p {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #f0f0f0;
+    }
+
+    /* Dashboard Review */
+    .review-title {
+      font-size: 20px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .review-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 20px;
+    }
+
+    .review-box {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 18px;
+      text-align: center;
+      transition: 0.3s;
+    }
+
+    .review-box:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+
+    .review-box h3 {
+      font-size: 18px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .review-box p {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 14px;
+      border-radius: 18px;
+      margin-top: 50px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .bottom-nav a {
+      color: white;
+      text-decoration: none;
+    }
+
+    .bottom-nav i {
+      font-size: 22px;
+      opacity: 0.8;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .bottom-nav i:hover {
+      opacity: 1;
+      transform: scale(1.2);
+      color: #FFD34E;
+    }
+
+    /* Responsive Tweaks */
+    @media(min-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr 2fr;
+      }
+
+      h2 {
+        font-size: 28px;
+      }
+
+      .task-card h3 {
+        font-size: 20px;
+      }
+
+      .review-box h3 {
+        font-size: 20px;
+      }
+    }
+
+    @media(min-width: 1024px) {
+      h2 {
+        font-size: 30px;
+      }
+    }
+
+    /* Controls Section */
+    .control-section {
+      margin-top: 60px;
+      text-align: center;
+    }
+
+    .control-section h3 {
+      font-size: 30px;
+      font-weight: 700;
+      margin-bottom: 35px;
+      color: white;
+      letter-spacing: 0.7px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .control-icon {
+      font-size: 32px;
+      animation: spinIcon 4s linear infinite;
+    }
+
+    @keyframes spinIcon {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Control Buttons */
+    .control-grid {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .control-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      padding: 20px 60px;
+      border-radius: 20px;
+      color: white;
+      font-weight: 600;
+      font-size: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.35s ease;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .control-btn::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 220%;
+      height: 220%;
+      background: radial-gradient(circle,
+          rgba(255, 255, 255, 0.35) 20%,
+          transparent 70%);
+      transform: scale(0);
+      transition: transform 0.5s ease;
+      border-radius: 50%;
+    }
+
+    .control-btn:hover::before {
+      transform: scale(1);
+    }
+
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-6px) scale(1.07);
+      color: #FFD34E;
+    }
+    /* Input Glass Box */
+.input-card {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 60px;        /* moved a little further down */
+  margin-left: auto;
+  margin-right: auto;       /* centers the box horizontally */
+  width: 450px;
+  max-width: 90%;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+
+.input-card label {
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.input-card input {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  outline: none;
+  font-size: 14px;
+}
+    .control-btn i {
+      font-size: 22px;
+    }
+  </style>
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Top -->
+    <div class="top-bar">
+      <img src="logo.png" alt="AgriNova Logo" class="logo">
+      <div class="profile">S</div>
+    </div>
+
+    <!-- Greeting -->
+    <h2>Hello There! <span class="wave">👋</span></h2>
+    <p>Welcome to AgriNova</p>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="task-card">
+        <h3>Welcome</h3>
+        <p>"AgriNova empowers farmers with smart, sustainable agriculture monitoring."</p>
+      </div>
+
+      <!-- Dashboard Values -->
+      <div class="review-section">
+        <div class="review-title">Dashboard</div>
+        <div class="review-grid">
+          <div class="review-box">
+            <h3>Soil Moisture</h3>
+            <p id="moistureValue">--</p>
+          </div>
+          <div class="review-box">
+            <h3>Temperature</h3>
+            <p id="tempValue">32°C</p>
+          </div>
+          <div class="review-box">
+            <h3>Plant Needs</h3>
+            <p id="npkValue">50-30-20</p>
+          </div>
+          <div class="review-box">
+            <h3>Water Level</h3>
+            <p id="waterLevel">--</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input-style live display -->
+    <div class="input-card">
+      <label for="tankHeightInput">Updated Tank Height:</label>
+      <input type="number" id="tankHeightInput" placeholder="Loading..." readonly>
+    </div>
+
+    <!-- Controls Section -->
+    <div class="control-section">
+      <h3><span class="control-icon">⚙</span> Water Management</h3>
+      <div class="control-grid">
+        <button id="drainBtn" class="control-btn"><i class="fas fa-arrow-down"></i> Drain Water</button>
+        <button id="distributeBtn" class="control-btn"><i class="fas fa-tint"></i> Distribute Water</button>
+      </div>
+
+      <div id="pumpStatus" style="margin-top: 10px;">
+        <div id="pump1Status" class="pump-status"></div>
+        <div id="pump2Status" class="pump-status"></div>
+      </div>
+
+      <div id="tempMessage" class="temp-message" style="display:none;"></div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <a href="#"><i class="fa-solid fa-house"></i></a>
+      <a href="weather.html"><i class="fa-solid fa-cloud-sun"></i></a>
+      <a href="ags.html"><i class="fa-solid fa-chart-line"></i></a>
+      <a href="#"><i class="fa-solid fa-gear"></i></a>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    const firebaseConfig = {
+      apiKey: "AIzaSyCII_qpWN7Xj0-qEYtIIQNzDmDoObywHoI",
+      authDomain: "ledblink-f184b.firebaseapp.com",
+      databaseURL: "https://ledblink-f184b-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "ledblink-f184b",
+      storageBucket: "ledblink-f184b.appspot.com",
+      messagingSenderId: "830272383259",
+      appId: "1:830272383259:android:182017adc731aa69994bbe"
+    };
+
+    const $ = id => document.getElementById(id);
+    let messageTimeout = null;
+
+    function showTemporaryMessage(msg, options = {}) {
+      const tempBox = $("tempMessage");
+      if (!tempBox) return;
+      tempBox.innerText = msg;
+      tempBox.style.display = "block";
+      tempBox.style.background = options.background || "#b00020";
+      tempBox.style.color = options.color || "white";
+      if (messageTimeout) clearTimeout(messageTimeout);
+      messageTimeout = setTimeout(() => {
+        tempBox.style.display = "none";
+      }, options.duration || 3000);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
+
+      let pump1State = false;
+      let pump2State = false;
+
+      function updateStatusUI() {
+        if ($("pump1Status")) {
+          $("pump1Status").innerText = pump1State ? "🚰 Drain Water is ON" : "";
+          $("pump1Status").style.background = pump1State ? "#2a7a3b" : "transparent";
+          $("pump1Status").style.color = pump1State ? "white" : "#000";
+        }
+        if ($("pump2Status")) {
+          $("pump2Status").innerText = pump2State ? "💧 Distribute Water is ON" : "";
+          $("pump2Status").style.background = pump2State ? "#2a7a3b" : "transparent";
+          $("pump2Status").style.color = pump2State ? "white" : "#000";
+        }
+      }
+
+      database.ref("controls/pump1").on("value", snap => {
+        pump1State = !!snap.val();
+        updateStatusUI();
+      });
+      database.ref("controls/pump2").on("value", snap => {
+        pump2State = !!snap.val();
+        updateStatusUI();
+      });
+
+      function togglePump1() {
+        pump1State = !pump1State;
+        database.ref("controls/pump1").set(pump1State)
+          .then(() => {
+            updateStatusUI();
+            if (!pump1State) showTemporaryMessage("🚰 Drain Water is OFF", { background: "#b00020" });
+          })
+          .catch(err => console.error("Failed to update pump1:", err));
+      }
+
+      function togglePump2() {
+        pump2State = !pump2State;
+        database.ref("controls/pump2").set(pump2State)
+          .then(() => {
+            updateStatusUI();
+            if (!pump2State) showTemporaryMessage("💧 Distribute Water is OFF", { background: "#b00020" });
+          })
+          .catch(err => console.error("Failed to update pump2:", err));
+      }
+
+      if ($("drainBtn")) $("drainBtn").addEventListener("click", togglePump1);
+      if ($("distributeBtn")) $("distributeBtn").addEventListener("click", togglePump2);
+
+      database.ref("sensors/tankHeight").on("value", (snapshot) => {
+        const tankHeight = snapshot.val();
+        const el = $("tankHeightInput");
+        if (el) el.value = tankHeight !== null && tankHeight !== undefined ? tankHeight : "";
+      });
+      database.ref("sensors/moisture").on("value", snapshot => {
+        if (!snapshot.exists()) return;
+        const moisture = snapshot.val();
+        if ($("moistureValue")) $("moistureValue").innerText = moisture + "%";
+        if (typeof moisture === "number" && (moisture < 10 || moisture > 40)) {
+          showMessage(`⚠ Soil moisture not optimal: ${moisture}%`);
+        }
+      });
+
+      database.ref("sensors/waterLevel").on("value", snapshot => {
+        if (!snapshot.exists()) return;
+        const level = snapshot.val();
+        if ($("waterLevel")) $("waterLevel").innerText = level;
+      });
+
+      console.log("AgroNova JS ready ✅");
+    });
+  })();
+  </script>
+</body>
+</html>
